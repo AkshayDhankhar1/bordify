@@ -94,7 +94,7 @@ export async function createCard(req, res) {
 // ─────────────────────────────────────────
 export async function updateCard(req, res) {
   const { id } = req.params;
-  const { title, description, due_date, cover_color, is_archived } = req.body;
+  const { title, description, due_date, cover_color, is_archived, is_done } = req.body;
 
   try {
     const result = await pool.query(`
@@ -104,8 +104,9 @@ export async function updateCard(req, res) {
            due_date    = COALESCE($3::DATE, due_date),
            cover_color = COALESCE($4, cover_color),
            is_archived = COALESCE($5, is_archived),
+           is_done     = COALESCE($6, is_done),
            updated_at  = NOW()
-      WHERE id = $6
+      WHERE id = $7
       RETURNING *
     `, [
       title?.trim() || null,
@@ -113,6 +114,7 @@ export async function updateCard(req, res) {
       due_date || null,
       cover_color || null,
       is_archived !== undefined ? is_archived : null,
+      is_done     !== undefined ? is_done     : null,
       id
     ]);
     if (!result.rows.length) return res.status(404).json({ error: 'Card not found' });

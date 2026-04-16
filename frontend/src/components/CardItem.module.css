@@ -1,53 +1,50 @@
 /* CardItem.module.css */
 .card {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
+  background: white;
+  border: 1.5px solid rgba(14,165,233,0.1);
   border-radius: var(--radius-sm);
   cursor: pointer;
   transition: all var(--transition);
   position: relative;
   overflow: visible;
-  group: '';
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
 }
 .card:hover {
-  border-color: rgba(99,102,241,0.35);
-  box-shadow: 0 2px 12px rgba(0,0,0,0.4);
-  transform: translateY(-1px);
+  border-color: var(--sky-300);
+  box-shadow: 0 4px 14px rgba(14,165,233,0.15);
+  transform: translateY(-2px);
+}
+.cardDragging {
+  box-shadow: 0 10px 30px rgba(14,165,233,0.25), 0 0 0 2px var(--sky-400);
+  transform: rotate(1.5deg) scale(1.02);
 }
 
-.cardDragging {
-  box-shadow: 0 8px 24px rgba(0,0,0,0.6), 0 0 0 2px rgba(99,102,241,0.5);
-  transform: rotate(2deg) scale(1.02);
+/* Done state */
+.cardDone {
+  opacity: 0.65;
+  background: #f8fafc;
 }
+.cardDone .title { text-decoration: line-through; color: var(--text-muted); }
 
 /* Cover strip */
 .cover {
-  height: 36px;
+  height: 32px;
   border-radius: var(--radius-sm) var(--radius-sm) 0 0;
 }
 
-/* Card body */
-.body {
-  padding: 10px;
-}
+/* Body */
+.body { padding: 10px 10px 8px; }
 
 /* Labels */
-.labels {
-  display: flex;
-  gap: 4px;
-  flex-wrap: wrap;
-  margin-bottom: 6px;
-}
-
+.labels { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 6px; }
 .label {
-  height: 6px;
-  width: 36px;
+  height: 5px;
+  width: 32px;
   border-radius: var(--radius-full);
   display: block;
-  opacity: 0.9;
   transition: width var(--transition);
 }
-.label:hover { width: 52px; }
+.label:hover { width: 50px; }
 
 /* Title */
 .title {
@@ -56,6 +53,7 @@
   color: var(--text-primary);
   line-height: 1.45;
   word-break: break-word;
+  transition: color var(--transition);
 }
 
 /* Footer */
@@ -64,71 +62,87 @@
   align-items: center;
   justify-content: space-between;
   margin-top: 8px;
-  gap: 8px;
-}
-
-.footerLeft {
-  display: flex;
-  align-items: center;
   gap: 6px;
 }
+.footerLeft { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
 
-/* Due date */
+/* Due badge */
 .due {
   font-size: 11px;
   font-weight: 600;
   padding: 2px 7px;
   border-radius: var(--radius-full);
 }
-.due_upcoming { background: rgba(34,197,94,0.15);  color: #22c55e; }
-.due_today    { background: rgba(245,158,11,0.15); color: #f59e0b; }
-.due_overdue  { background: rgba(239,68,68,0.15);  color: #ef4444; }
+.due_upcoming { background: #dcfce7; color: #16a34a; }
+.due_today    { background: #fef9c3; color: #ca8a04; }
+.due_overdue  { background: #fee2e2; color: #dc2626; }
 
-.indicator {
-  font-size: 15px;
-  color: var(--text-muted);
-}
+.indicator { font-size: 14px; color: var(--text-muted); }
 
-/* Member avatars */
-.members {
-  display: flex;
-}
-
+/* Members */
+.members { display: flex; }
 .memberAvatar {
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 9px;
-  font-weight: 700;
-  color: white;
-  border: 2px solid var(--bg-card);
-  margin-left: -4px;
-  flex-shrink: 0;
-  text-transform: uppercase;
+  width: 20px; height: 20px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 8px; font-weight: 700; color: white;
+  border: 2px solid white; margin-left: -4px;
+  flex-shrink: 0; text-transform: uppercase;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.15);
 }
 .members .memberAvatar:first-child { margin-left: 0; }
 
-/* Delete button — hidden until hover */
-.deleteBtn {
-  position: absolute;
-  top: 6px;
-  right: 6px;
-  background: rgba(0,0,0,0.5);
-  border: none;
-  color: rgba(255,255,255,0.6);
-  width: 22px;
-  height: 22px;
-  border-radius: var(--radius-full);
-  font-size: 10px;
+/* Action row */
+.actions {
   display: flex;
   align-items: center;
-  justify-content: center;
-  cursor: pointer;
+  gap: 4px;
+  padding: 0 8px 8px;
   opacity: 0;
   transition: opacity var(--transition);
 }
-.card:hover .deleteBtn { opacity: 1; }
-.deleteBtn:hover { background: rgba(239,68,68,0.8); color: white; }
+.card:hover .actions { opacity: 1; }
+
+/* Done button on card */
+.doneBtn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 5px 8px;
+  border-radius: var(--radius-xs);
+  font-size: 11px;
+  font-weight: 700;
+  border: 1.5px solid #bbf7d0;
+  background: #f0fdf4;
+  color: #16a34a;
+  cursor: pointer;
+  transition: all var(--transition);
+  font-family: inherit;
+}
+.doneBtn:hover { background: #dcfce7; border-color: #86efac; }
+.doneBtnActive { background: #dcfce7; border-color: #4ade80; color: #15803d; }
+
+.deleteBtn {
+  background: none;
+  border: 1.5px solid #fecaca;
+  color: #dc2626;
+  width: 24px; height: 24px;
+  border-radius: var(--radius-xs);
+  font-size: 10px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition);
+  flex-shrink: 0;
+}
+.deleteBtn:hover { background: #fee2e2; }
+
+/* Inline Link */
+.inlineLink {
+  color: var(--sky-600);
+  text-decoration: underline;
+  word-break: break-all;
+}
+.inlineLink:hover {
+  color: var(--sky-700);
+}

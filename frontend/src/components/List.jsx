@@ -1,23 +1,12 @@
 // src/components/List.jsx
-// A single Kanban list column. Supports:
-// - Drag-and-drop (Droppable for cards, Draggable as a list itself)
-// - Inline title rename
-// - Add card form
-// - Delete list
-
 import { useState } from 'react';
 import { Draggable, Droppable } from '@hello-pangea/dnd';
 import CardItem from './CardItem.jsx';
 import styles   from './List.module.css';
 
 export default function List({
-  list,
-  index,
-  onCreateCard,
-  onDeleteCard,
-  onDeleteList,
-  onRenameList,
-  onCardClick,
+  list, index,
+  onCreateCard, onDeleteCard, onDeleteList, onRenameList, onCardClick, onToggleCardDone,
 }) {
   const [editing,    setEditing]    = useState(false);
   const [titleValue, setTitleValue] = useState(list.title);
@@ -42,8 +31,6 @@ export default function List({
     setAddingCard(false);
   }
 
-  // Each list is a Draggable (horizontal drag among lists)
-  // Its cards live inside a Droppable (vertical drop zone for cards)
   return (
     <Draggable draggableId={`list-${list.id}`} index={index}>
       {(provided, snapshot) => (
@@ -53,7 +40,7 @@ export default function List({
           className={`${styles.list} ${snapshot.isDragging ? styles.listDragging : ''}`}
           id={`list-${list.id}`}
         >
-          {/* List header — drag handle is here */}
+          {/* Header — drag handle */}
           <div className={styles.listHeader} {...provided.dragHandleProps}>
             {editing ? (
               <input
@@ -61,36 +48,30 @@ export default function List({
                 value={titleValue}
                 onChange={e => setTitleValue(e.target.value)}
                 onBlur={saveTitle}
-                onKeyDown={e => { if (e.key === 'Enter') saveTitle(); if (e.key === 'Escape') { setTitleValue(list.title); setEditing(false); } }}
+                onKeyDown={e => {
+                  if (e.key === 'Enter') saveTitle();
+                  if (e.key === 'Escape') { setTitleValue(list.title); setEditing(false); }
+                }}
                 autoFocus
                 onClick={e => e.stopPropagation()}
               />
             ) : (
-              <h2
-                className={styles.listTitle}
-                onClick={() => setEditing(true)}
-                title="Click to rename"
-              >
+              <h2 className={styles.listTitle} onClick={() => setEditing(true)} title="Click to rename">
                 {list.title}
                 <span className={styles.cardCount}>{list.cards.length}</span>
               </h2>
             )}
 
-            {/* List menu */}
+            {/* Options menu */}
             <div className={styles.menuWrapper}>
               <button
                 className={`btn-icon ${styles.menuBtn}`}
                 onClick={() => setShowMenu(v => !v)}
                 title="List options"
-              >
-                ···
-              </button>
+              >···</button>
               {showMenu && (
                 <div className={styles.menu}>
-                  <button
-                    className={styles.menuItem}
-                    onClick={() => { setEditing(true); setShowMenu(false); }}
-                  >
+                  <button className={styles.menuItem} onClick={() => { setEditing(true); setShowMenu(false); }}>
                     ✏️ Rename list
                   </button>
                   <button
@@ -117,8 +98,9 @@ export default function List({
                     key={card.id}
                     card={card}
                     index={cardIndex}
-                    onDelete={() => onDeleteCard(list.id, card.id)}
                     onClick={() => onCardClick(card.id)}
+                    onDelete={() => onDeleteCard(list.id, card.id)}
+                    onToggleDone={() => onToggleCardDone(list.id, card)}
                   />
                 ))}
                 {droppableProvided.placeholder}

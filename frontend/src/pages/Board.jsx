@@ -1,39 +1,35 @@
 // src/pages/Board.jsx
-// The main board view with drag-and-drop lists and cards using @hello-pangea/dnd.
-
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { DragDropContext, Droppable } from '@hello-pangea/dnd';
 import { boardsApi, listsApi, cardsApi } from '../api/index.js';
-import List        from '../components/List.jsx';
-import CardModal   from '../components/CardModal.jsx';
-import SearchBar   from '../components/SearchBar.jsx';
-import styles      from './Board.module.css';
+import List       from '../components/List.jsx';
+import CardModal  from '../components/CardModal.jsx';
+import SearchBar  from '../components/SearchBar.jsx';
+import styles     from './Board.module.css';
 
-// Same bg gradients as Home.jsx (DRY in practice would use a shared constant)
 const BG_STYLES = {
-  'gradient-1': 'linear-gradient(135deg,#1e1b4b 0%, #312e81 50%, #4338ca 100%)',
-  'gradient-2': 'linear-gradient(135deg,#064e3b 0%, #065f46 50%, #047857 100%)',
-  'gradient-3': 'linear-gradient(135deg,#0c4a6e 0%, #075985 50%, #0369a1 100%)',
-  'gradient-4': 'linear-gradient(135deg,#7c2d12 0%, #9a3412 50%, #c2410c 100%)',
-  'gradient-5': 'linear-gradient(135deg,#4a044e 0%, #6b21a8 50%, #7c3aed 100%)',
-  'gradient-6': 'linear-gradient(135deg,#042f2e 0%, #134e4a 50%, #0f766e 100%)',
+  'gradient-1': 'linear-gradient(135deg,#0ea5e9 0%,#6366f1 100%)',
+  'gradient-2': 'linear-gradient(135deg,#f97316 0%,#ef4444 100%)',
+  'gradient-3': 'linear-gradient(135deg,#22c55e 0%,#0ea5e9 100%)',
+  'gradient-4': 'linear-gradient(135deg,#8b5cf6 0%,#ec4899 100%)',
+  'gradient-5': 'linear-gradient(135deg,#f59e0b 0%,#f97316 100%)',
+  'gradient-6': 'linear-gradient(135deg,#06b6d4 0%,#22c55e 100%)',
 };
 
 export default function Board() {
-  const { id } = useParams();  // board ID from URL /board/:id
+  const { id } = useParams();
 
-  const [board,        setBoard]        = useState(null);
-  const [lists,        setLists]        = useState([]);   // array of lists with .cards
-  const [loading,      setLoading]      = useState(true);
-  const [error,        setError]        = useState(null);
-  const [activeCard,   setActiveCard]   = useState(null); // card ID to show in modal
-  const [editingTitle, setEditingTitle] = useState(false);
-  const [boardTitle,   setBoardTitle]   = useState('');
-  const [searchActive, setSearchActive] = useState(false);
-  const [searchResults,setSearchResults]= useState(null);  // null = no search active
+  const [board,         setBoard]         = useState(null);
+  const [lists,         setLists]         = useState([]);
+  const [loading,       setLoading]       = useState(true);
+  const [error,         setError]         = useState(null);
+  const [activeCard,    setActiveCard]    = useState(null);
+  const [editingTitle,  setEditingTitle]  = useState(false);
+  const [boardTitle,    setBoardTitle]    = useState('');
+  const [searchActive,  setSearchActive]  = useState(false);
+  const [searchResults, setSearchResults] = useState(null);
 
-  // ── Load board ─────────────────────────────────────────────
   useEffect(() => { loadBoard(); }, [id]);
 
   async function loadBoard() {
@@ -51,125 +47,93 @@ export default function Board() {
     }
   }
 
-  // ── Board title inline edit ──────────────────────────────
   async function saveBoardTitle() {
     if (boardTitle.trim() === board.title) { setEditingTitle(false); return; }
-    try {
-      await boardsApi.update(id, { title: boardTitle.trim() });
-      setBoard(prev => ({ ...prev, title: boardTitle.trim() }));
-    } catch (err) { console.error(err); }
+    await boardsApi.update(id, { title: boardTitle.trim() });
+    setBoard(prev => ({ ...prev, title: boardTitle.trim() }));
     setEditingTitle(false);
   }
 
-  // ── Create list ───────────────────────────────────────────
+  async function handleMarkBoardDone() {
+    const isDone = !board.is_done;
+    await boardsApi.update(id, { is_done: isDone });
+    setBoard(prev => ({ ...prev, is_done: isDone }));
+  }
+
   async function handleCreateList(title) {
-    try {
-      const res = await listsApi.create(id, { title });
-      setLists(prev => [...prev, { ...res.data, cards: [] }]);
-    } catch (err) { console.error(err); }
+    const res = await listsApi.create(id, { title });
+    setLists(prev => [...prev, { ...res.data, cards: [] }]);
   }
 
-  // ── Delete list ───────────────────────────────────────────
   async function handleDeleteList(listId) {
-    try {
-      await listsApi.delete(listId);
-      setLists(prev => prev.filter(l => l.id !== listId));
-    } catch (err) { console.error(err); }
+    await listsApi.delete(listId);
+    setLists(prev => prev.filter(l => l.id !== listId));
   }
 
-  // ── Rename list ───────────────────────────────────────────
   async function handleRenameList(listId, title) {
-    try {
-      await listsApi.update(listId, { title });
-      setLists(prev => prev.map(l => l.id === listId ? { ...l, title } : l));
-    } catch (err) { console.error(err); }
+    await listsApi.update(listId, { title });
+    setLists(prev => prev.map(l => l.id === listId ? { ...l, title } : l));
   }
 
-  // ── Create card ───────────────────────────────────────────
   async function handleCreateCard(listId, title) {
-    try {
-      const res = await cardsApi.create(listId, { title, board_id: Number(id) });
-      const card = { ...res.data, labels: [], members: [] };
-      setLists(prev => prev.map(l =>
-        l.id === listId ? { ...l, cards: [...l.cards, card] } : l
-      ));
-    } catch (err) { console.error(err); }
+    const res = await cardsApi.create(listId, { title, board_id: Number(id) });
+    const card = { ...res.data, labels: [], members: [] };
+    setLists(prev => prev.map(l => l.id === listId ? { ...l, cards: [...l.cards, card] } : l));
   }
 
-  // ── Delete card ───────────────────────────────────────────
   async function handleDeleteCard(listId, cardId) {
-    try {
-      await cardsApi.delete(cardId);
-      setLists(prev => prev.map(l =>
-        l.id === listId ? { ...l, cards: l.cards.filter(c => c.id !== cardId) } : l
-      ));
-    } catch (err) { console.error(err); }
+    await cardsApi.delete(cardId);
+    setLists(prev => prev.map(l =>
+      l.id === listId ? { ...l, cards: l.cards.filter(c => c.id !== cardId) } : l
+    ));
   }
 
-  // ── Drag and drop ─────────────────────────────────────────
-  // This is the most important function for the assignment.
-  // It handles both list-to-list reorder and card movement within/between lists.
+  async function handleToggleCardDone(listId, card) {
+    const res = await cardsApi.update(card.id, { is_archived: !card.is_done });
+    setLists(prev => prev.map(l =>
+      l.id === listId
+        ? { ...l, cards: l.cards.map(c => c.id === card.id ? { ...c, is_done: !c.is_done } : c) }
+        : l
+    ));
+  }
+
   async function onDragEnd(result) {
     const { source, destination, type } = result;
-
-    // Dropped outside — do nothing
     if (!destination) return;
-    // Same position — do nothing
     if (source.droppableId === destination.droppableId && source.index === destination.index) return;
 
     if (type === 'LIST') {
-      // ── Reorder lists ──────────────────────────────────────
       const reordered = Array.from(lists);
-      const [moved]   = reordered.splice(source.index, 1);
+      const [moved] = reordered.splice(source.index, 1);
       reordered.splice(destination.index, 0, moved);
-      setLists(reordered); // optimistic update (instant UI)
-
-      // Persist new order to backend
+      setLists(reordered);
       await listsApi.reorder(id, { orderedIds: reordered.map(l => l.id) });
-
     } else {
-      // ── Move card ──────────────────────────────────────────
       const srcListId  = Number(source.droppableId);
       const destListId = Number(destination.droppableId);
       const newLists   = lists.map(l => ({ ...l, cards: [...l.cards] }));
-
-      const srcList  = newLists.find(l => l.id === srcListId);
-      const destList = newLists.find(l => l.id === destListId);
-
+      const srcList    = newLists.find(l => l.id === srcListId);
+      const destList   = newLists.find(l => l.id === destListId);
       const [movedCard] = srcList.cards.splice(source.index, 1);
       destList.cards.splice(destination.index, 0, movedCard);
-
-      setLists(newLists); // optimistic update
-
-      // Persist to backend — send all card IDs in destination list in new order
-      await cardsApi.reorder(destListId, {
-        orderedIds: destList.cards.map(c => c.id),
-      });
-
-      // If source list changed, update it too
+      setLists(newLists);
+      await cardsApi.reorder(destListId, { orderedIds: destList.cards.map(c => c.id) });
       if (srcListId !== destListId) {
-        await cardsApi.reorder(srcListId, {
-          orderedIds: srcList.cards.map(c => c.id),
-        });
+        await cardsApi.reorder(srcListId, { orderedIds: srcList.cards.map(c => c.id) });
       }
     }
   }
 
-  // ── Card updated in modal — refresh card in lists state ───
   function handleCardUpdated(updatedCard) {
     setLists(prev => prev.map(l => ({
-      ...l,
-      cards: l.cards.map(c => c.id === updatedCard.id ? { ...c, ...updatedCard } : c)
+      ...l, cards: l.cards.map(c => c.id === updatedCard.id ? { ...c, ...updatedCard } : c)
     })));
   }
 
-  // ── Search ────────────────────────────────────────────────
   async function handleSearch(params) {
-    try {
-      const res = await boardsApi.search(id, params);
-      setSearchResults(res.data);
-      setSearchActive(true);
-    } catch (err) { console.error(err); }
+    const res = await boardsApi.search(id, params);
+    setSearchResults(res.data);
+    setSearchActive(true);
   }
 
   function handleClearSearch() {
@@ -177,14 +141,9 @@ export default function Board() {
     setSearchActive(false);
   }
 
-  // ── Render ────────────────────────────────────────────────
   if (loading) return (
-    <div className={styles.loadingScreen}>
-      <div className="spinner" />
-      <p>Loading board…</p>
-    </div>
+    <div className={styles.loadingScreen}><div className="spinner" /><p>Loading board…</p></div>
   );
-
   if (error) return (
     <div className={styles.loadingScreen}>
       <p>⚠️ {error}</p>
@@ -196,14 +155,12 @@ export default function Board() {
 
   return (
     <div className={styles.boardPage} style={{ background: bgStyle }}>
-      {/* Board header */}
+
+      {/* ── Board Header ── */}
       <div className={styles.boardHeader}>
         <div className={styles.headerLeft}>
-          <Link to="/" className={styles.backBtn} title="Back to boards">
-            ← Boards
-          </Link>
+          <Link to="/" className={styles.backBtn}>← Boards</Link>
 
-          {/* Editable board title */}
           {editingTitle ? (
             <input
               className={styles.titleInput}
@@ -225,7 +182,7 @@ export default function Board() {
               <div
                 key={m.id}
                 className={styles.memberAvatar}
-                style={{ background: m.color || '#6366f1' }}
+                style={{ background: m.color || '#0ea5e9' }}
                 title={m.name}
               >
                 {m.name.split(' ').map(p => p[0]).join('').slice(0, 2)}
@@ -234,37 +191,43 @@ export default function Board() {
           </div>
         </div>
 
-        {/* Search bar */}
+        {/* Done board button */}
+        <button
+          className={`${styles.doneBoardBtn} ${board.is_done ? styles.isDone : ''}`}
+          onClick={handleMarkBoardDone}
+          id="done-board-btn"
+        >
+          {board.is_done ? '✓ Completed' : '✓ Mark Done'}
+        </button>
+
         <SearchBar board={board} onSearch={handleSearch} onClear={handleClearSearch} />
       </div>
 
-      {/* Search results overlay */}
+      {/* Search results */}
       {searchActive && searchResults && (
         <div className={styles.searchResults}>
           <div className={styles.searchResultsHeader}>
-            <span>🔍 {searchResults.length} result{searchResults.length !== 1 ? 's' : ''}</span>
+            <span>🔍 {searchResults.length} card{searchResults.length !== 1 ? 's' : ''} found</span>
             <button className="btn-icon" onClick={handleClearSearch}>✕</button>
           </div>
           <div className={styles.searchResultsList}>
             {searchResults.length === 0 ? (
-              <p className="text-muted text-sm" style={{ padding: '12px 0' }}>No cards match your search.</p>
-            ) : (
-              searchResults.map(card => (
-                <button
-                  key={card.id}
-                  className={styles.searchResultItem}
-                  onClick={() => { setActiveCard(card.id); handleClearSearch(); }}
-                >
-                  <span className={styles.srListName}>{card.list_title}</span>
-                  <span className={styles.srCardTitle}>{card.title}</span>
-                </button>
-              ))
-            )}
+              <p style={{ padding: '14px', color: 'var(--text-muted)', fontSize: '14px' }}>No results.</p>
+            ) : searchResults.map(card => (
+              <button
+                key={card.id}
+                className={styles.searchResultItem}
+                onClick={() => { setActiveCard(card.id); handleClearSearch(); }}
+              >
+                <span className={styles.srListName}>{card.list_title}</span>
+                <span className={styles.srCardTitle}>{card.title}</span>
+              </button>
+            ))}
           </div>
         </div>
       )}
 
-      {/* Kanban board — drag and drop context */}
+      {/* ── Kanban Board ── */}
       <div className={styles.boardScrollArea}>
         <DragDropContext onDragEnd={onDragEnd}>
           <Droppable droppableId="board" type="LIST" direction="horizontal">
@@ -284,11 +247,10 @@ export default function Board() {
                     onDeleteList={handleDeleteList}
                     onRenameList={handleRenameList}
                     onCardClick={setActiveCard}
+                    onToggleCardDone={handleToggleCardDone}
                   />
                 ))}
                 {provided.placeholder}
-
-                {/* Add list button */}
                 <AddListForm onCreate={handleCreateList} />
               </div>
             )}
@@ -296,7 +258,7 @@ export default function Board() {
         </DragDropContext>
       </div>
 
-      {/* Card detail modal */}
+      {/* Card Modal */}
       {activeCard && (
         <CardModal
           cardId={activeCard}
@@ -304,10 +266,7 @@ export default function Board() {
           onClose={() => setActiveCard(null)}
           onCardUpdated={handleCardUpdated}
           onCardDeleted={(cardId) => {
-            setLists(prev => prev.map(l => ({
-              ...l,
-              cards: l.cards.filter(c => c.id !== cardId)
-            })));
+            setLists(prev => prev.map(l => ({ ...l, cards: l.cards.filter(c => c.id !== cardId) })));
             setActiveCard(null);
           }}
         />
@@ -316,9 +275,6 @@ export default function Board() {
   );
 }
 
-// ─────────────────────────────────────────
-// AddListForm — inline form fixed at end of list container
-// ─────────────────────────────────────────
 function AddListForm({ onCreate }) {
   const [open,  setOpen]  = useState(false);
   const [title, setTitle] = useState('');
@@ -332,11 +288,7 @@ function AddListForm({ onCreate }) {
   }
 
   if (!open) return (
-    <button
-      id="add-list-btn"
-      className={styles.addListBtn}
-      onClick={() => setOpen(true)}
-    >
+    <button id="add-list-btn" className={styles.addListBtn} onClick={() => setOpen(true)}>
       + Add a list
     </button>
   );

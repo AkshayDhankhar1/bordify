@@ -1,92 +1,87 @@
 /* Board.module.css */
 .boardPage {
-  flex: 1;
+  min-height: calc(100vh - 60px);
   display: flex;
   flex-direction: column;
-  min-height: calc(100vh - 56px);
-  overflow: hidden;
-  position: relative;
+  background-attachment: fixed;
 }
 
-/* Loading / error */
-.loadingScreen {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 16px;
-  height: calc(100vh - 56px);
-  color: var(--text-secondary);
-}
-
-/* Board Header */
+/* ── Board Header ── */
 .boardHeader {
+  padding: 14px 20px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
   gap: 12px;
-  padding: 14px 20px;
-  background: rgba(0,0,0,0.35);
-  backdrop-filter: blur(8px);
-  border-bottom: 1px solid rgba(255,255,255,0.08);
-  flex-shrink: 0;
+  flex-wrap: wrap;
+  background: rgba(255,255,255,0.88);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(14,165,233,0.12);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  position: sticky;
+  top: 60px;
+  z-index: 100;
 }
 
 .headerLeft {
   display: flex;
   align-items: center;
-  gap: 16px;
-  min-width: 0;
+  gap: 12px;
   flex: 1;
+  min-width: 0;
 }
 
 .backBtn {
-  color: rgba(255,255,255,0.7);
   font-size: 13px;
-  font-weight: 500;
-  white-space: nowrap;
-  transition: color var(--transition);
+  font-weight: 600;
+  color: var(--text-muted);
+  padding: 6px 12px;
+  border-radius: var(--radius-full);
+  border: 1.5px solid var(--border);
+  background: white;
+  cursor: pointer;
   text-decoration: none;
+  transition: all var(--transition);
+  white-space: nowrap;
 }
-.backBtn:hover { color: white; }
+.backBtn:hover {
+  border-color: var(--sky-300);
+  color: var(--sky-600);
+  background: var(--sky-50);
+}
 
 .boardTitle {
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 800;
-  color: white;
   font-family: 'Plus Jakarta Sans', sans-serif;
+  color: var(--text-primary);
   cursor: pointer;
-  letter-spacing: -0.3px;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
   padding: 4px 8px;
   border-radius: var(--radius-sm);
   transition: background var(--transition);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
-.boardTitle:hover { background: rgba(255,255,255,0.1); }
+.boardTitle:hover { background: rgba(14,165,233,0.08); }
 
 .titleInput {
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 800;
   font-family: 'Plus Jakarta Sans', sans-serif;
-  color: white;
-  background: rgba(255,255,255,0.15);
-  border: 1px solid rgba(255,255,255,0.3);
+  background: white;
+  border: 2px solid var(--sky-300);
   border-radius: var(--radius-sm);
-  padding: 4px 8px;
-  outline: none;
+  padding: 4px 10px;
+  color: var(--text-primary);
+  box-shadow: 0 0 0 3px rgba(14,165,233,0.12);
   min-width: 200px;
+  outline: none;
 }
 
-/* Member avatars in header */
 .memberAvatars {
   display: flex;
-  margin-left: 4px;
+  align-items: center;
 }
-
 .memberAvatar {
   width: 30px;
   height: 30px;
@@ -97,134 +92,146 @@
   font-size: 11px;
   font-weight: 700;
   color: white;
-  border: 2px solid rgba(0,0,0,0.3);
-  margin-left: -6px;
   text-transform: uppercase;
-  flex-shrink: 0;
-  cursor: default;
-  transition: transform var(--transition);
+  border: 2px solid white;
+  margin-left: -6px;
+  box-shadow: var(--shadow-xs);
 }
-.memberAvatar:hover { transform: scale(1.15); z-index: 5; }
-.memberAvatars .memberAvatar:first-child { margin-left: 0; }
+.memberAvatars div:first-child { margin-left: 0; }
+
+/* Done Board button */
+.doneBoardBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 16px;
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  color: white;
+  border: none;
+  border-radius: var(--radius-full);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(34,197,94,0.3);
+  transition: all var(--transition);
+  font-family: 'Inter', sans-serif;
+}
+.doneBoardBtn:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(34,197,94,0.4); }
+.doneBoardBtn.isDone {
+  background: linear-gradient(135deg, #94a3b8, #64748b);
+  box-shadow: none;
+}
 
 /* Search results dropdown */
 .searchResults {
-  position: absolute;
-  top: 60px;
-  right: 20px;
-  z-index: 80;
-  background: var(--bg-surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  width: 340px;
+  background: white;
+  border-radius: var(--radius-md);
+  border: 1.5px solid var(--border);
   box-shadow: var(--shadow-lg);
+  margin: 8px 20px;
   overflow: hidden;
+  z-index: 50;
 }
-
 .searchResultsHeader {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
   padding: 10px 14px;
-  border-bottom: 1px solid var(--border);
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-secondary);
-}
-
-.searchResultsList {
-  max-height: 320px;
-  overflow-y: auto;
-  padding: 4px;
-}
-
-.searchResultItem {
-  width: 100%;
-  text-align: left;
-  display: block;
-  padding: 10px 12px;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  transition: background var(--transition);
-  background: transparent;
-  border: none;
-  color: inherit;
-}
-.searchResultItem:hover { background: var(--bg-hover); }
-
-.srListName {
-  display: block;
-  font-size: 10px;
-  color: var(--brand-400);
-  font-weight: 600;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  margin-bottom: 2px;
+  border-bottom: 1px solid var(--border);
 }
-
-.srCardTitle {
-  font-size: 14px;
-  color: var(--text-primary);
-  font-weight: 500;
+.searchResultsList { max-height: 300px; overflow-y: auto; }
+.searchResultItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 14px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  transition: background var(--transition);
+  border-bottom: 1px solid var(--border);
 }
+.searchResultItem:last-child { border-bottom: none; }
+.searchResultItem:hover { background: var(--sky-50); }
+.srListName {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--sky-500);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  background: var(--sky-50);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  white-space: nowrap;
+}
+.srCardTitle { font-size: 14px; font-weight: 500; color: var(--text-primary); }
 
-/* ── Kanban scroll area ──────────────────────────────────── */
+/* ── Kanban Scroll Area ── */
 .boardScrollArea {
   flex: 1;
   overflow-x: auto;
-  overflow-y: hidden;
-  padding: 20px;
+  padding: 24px 20px 32px;
 }
 
 .listsContainer {
   display: flex;
-  gap: 14px;
-  height: 100%;
+  gap: 16px;
   align-items: flex-start;
-  min-height: calc(100vh - 160px);
+  min-height: calc(100vh - 180px);
 }
 
 /* Add list button */
 .addListBtn {
-  background: rgba(255,255,255,0.12);
-  border: 1px dashed rgba(255,255,255,0.2);
-  color: rgba(255,255,255,0.8);
-  border-radius: var(--radius-md);
-  padding: 12px 18px;
+  flex-shrink: 0;
+  width: 260px;
+  background: rgba(255,255,255,0.65);
+  backdrop-filter: blur(8px);
+  border: 2px dashed rgba(14,165,233,0.35);
+  color: var(--sky-600);
   font-size: 14px;
   font-weight: 600;
+  padding: 14px;
+  border-radius: var(--radius-md);
   cursor: pointer;
-  white-space: nowrap;
-  min-width: 220px;
-  text-align: left;
   transition: all var(--transition);
-  flex-shrink: 0;
+  font-family: 'Inter', sans-serif;
+  white-space: nowrap;
 }
 .addListBtn:hover {
-  background: rgba(255,255,255,0.18);
-  border-color: rgba(255,255,255,0.35);
-  color: white;
+  background: rgba(255,255,255,0.9);
+  border-color: var(--sky-400);
+  color: var(--sky-700);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
 }
 
 .addListForm {
-  background: var(--bg-surface);
-  border: 1px solid var(--border);
+  flex-shrink: 0;
+  width: 260px;
+  background: white;
   border-radius: var(--radius-md);
-  padding: 10px;
-  min-width: 220px;
+  padding: 14px;
+  box-shadow: var(--shadow-md);
+  border: 1.5px solid var(--sky-200);
+}
+.addListInput { font-size: 14px; }
+.addListActions { display: flex; gap: 8px; margin-top: 10px; align-items: center; }
+
+/* Loading / Error */
+.loadingScreen {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  flex-shrink: 0;
-}
-
-.addListInput {
-  background: var(--bg-input);
-  border: 1px solid var(--border);
-}
-
-.addListActions {
-  display: flex;
+  gap: 16px;
+  justify-content: center;
   align-items: center;
-  gap: 6px;
+  min-height: calc(100vh - 60px);
+  color: var(--text-muted);
 }

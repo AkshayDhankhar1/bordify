@@ -1,8 +1,3 @@
-// db/seed.js
-// Populates the database with sample data so the app works right out of the box.
-// Run with:  node db/seed.js
-// WARNING: This deletes all existing data and re-seeds fresh.
-
 import pool from './pool.js';
 import fs   from 'fs';
 import path from 'path';
@@ -23,175 +18,120 @@ async function seed() {
     // 2. Insert sample members
     const membersResult = await client.query(`
       INSERT INTO members (name, email, avatar_url, color) VALUES
-        ('Alice Johnson', 'alice@boardify.dev',   null, '#6366f1'),
-        ('Bob Smith',     'bob@boardify.dev',     null, '#22c55e'),
-        ('Carol White',   'carol@boardify.dev',   null, '#f59e0b'),
-        ('Dave Brown',    'dave@boardify.dev',    null, '#ef4444'),
-        ('Eve Davis',     'eve@boardify.dev',     null, '#06b6d4')
+        ('Akshay Dhankhar', 'akshaydhankhar.iiitn@gmail.com', null, '#ea580c'),
+        ('Hiring Manager',  'hiring@scaler.com',              null, '#6366f1'),
+        ('Bob Smith',       'bob@boardify.dev',               null, '#22c55e')
       RETURNING id, name
     `);
-    const [alice, bob, carol, dave, eve] = membersResult.rows;
+    const [akshay, manager, bob] = membersResult.rows;
     console.log('✅ Members inserted');
 
-    // 3. Insert sample boards
+    // 3. Insert boards
     const boardsResult = await client.query(`
-      INSERT INTO boards (title, background) VALUES
-        ('Product Roadmap',  'gradient-1'),
-        ('Marketing Sprint', 'gradient-2'),
-        ('Engineering Q2',   'gradient-3')
+      INSERT INTO boards (title, background, created_at) VALUES
+        ('Hi from Akshay Dhankhar (Scaler Team)', 'gradient-2', NOW() + INTERVAL '1 hour'),
+        ('AtomPay Sprint Planning', 'gradient-1', NOW()),
+        ('Personal Kanban', 'gradient-3', NOW() - INTERVAL '1 hour')
       RETURNING id, title
     `);
-    const [roadmap, marketing, engineering] = boardsResult.rows;
+    const [portfolio, atompay, personal] = boardsResult.rows;
     console.log('✅ Boards inserted');
 
     // 4. Assign members to boards
     await client.query(`
       INSERT INTO board_members (board_id, member_id, role) VALUES
-        ($1, $2, 'admin'), ($1, $3, 'member'), ($1, $4, 'member'),
-        ($5, $3, 'admin'), ($5, $2, 'member'),
-        ($6, $4, 'admin'), ($6, $7, 'member'), ($6, $2, 'member')
-    `, [roadmap.id, alice.id, bob.id, carol.id,
-        marketing.id, carol.id, bob.id,
-        engineering.id, dave.id, eve.id, alice.id]);
+        ($1, $2, 'admin'), ($1, $3, 'member'),
+        ($4, $2, 'admin'), ($4, $5, 'member'),
+        ($6, $2, 'admin')
+    `, [portfolio.id, akshay.id, manager.id, atompay.id, bob.id, personal.id]);
     console.log('✅ Board members assigned');
 
-    // 5. Insert labels for the Product Roadmap board
+    // 5. Insert labels for the Portfolio board
     const labelsResult = await client.query(`
       INSERT INTO labels (board_id, name, color) VALUES
-        ($1, 'Bug',      '#ef4444'),
-        ($1, 'Feature',  '#6366f1'),
-        ($1, 'Design',   '#f59e0b'),
-        ($1, 'Backend',  '#22c55e'),
-        ($1, 'Frontend', '#06b6d4'),
-        ($1, 'Urgent',   '#ec4899')
+        ($1, 'Full Stack', '#ef4444'),
+        ($1, 'DSA (500+)', '#6366f1'),
+        ($1, 'Backend',    '#22c55e'),
+        ($1, 'Frontend',   '#f59e0b'),
+        ($1, 'Important',  '#ec4899')
       RETURNING id, name
-    `, [roadmap.id]);
-    const [lblBug, lblFeature, lblDesign, lblBackend, lblFrontend, lblUrgent] = labelsResult.rows;
+    `, [portfolio.id]);
+    const [lFullStack, lDsa, lBackend, lFrontend, lImportant] = labelsResult.rows;
     console.log('✅ Labels inserted');
 
-    // 6. Insert lists for the Product Roadmap board
+    // 6. Insert lists for the Portfolio board
     const listsResult = await client.query(`
       INSERT INTO lists (board_id, title, position) VALUES
-        ($1, 'Backlog',     0),
-        ($1, 'In Progress', 1),
-        ($1, 'In Review',   2),
-        ($1, 'Done',        3)
+        ($1, 'About Me', 0),
+        ($1, 'Skills',   1),
+        ($1, 'Projects', 2),
+        ($1, 'Contact',  3)
       RETURNING id, title
-    `, [roadmap.id]);
-    const [backlog, inProgress, inReview, done] = listsResult.rows;
+    `, [portfolio.id]);
+    const [lstAbout, lstSkills, lstProjects, lstContact] = listsResult.rows;
     console.log('✅ Lists inserted');
 
-    // 7. Insert cards
-    const cardsResult = await client.query(`
-      INSERT INTO cards (list_id, board_id, title, description, position, due_date) VALUES
-        ($1, $5, 'Design new landing page',
-          'Create wireframes and high-fidelity mockups for the updated landing page. Focus on conversion.',
-          0, '2026-04-25'),
-        ($1, $5, 'Set up CI/CD pipeline',
-          'Automate testing and deployment using GitHub Actions. Target: deploy on every merge to main.',
-          1, '2026-04-20'),
-        ($1, $5, 'Write API documentation',
-          'Document all REST endpoints using OpenAPI/Swagger spec.',
-          2, null),
-        ($2, $5, 'Implement drag-and-drop',
-          'Add @hello-pangea/dnd for smooth list and card reordering.',
-          0, '2026-04-18'),
-        ($2, $5, 'Build card detail modal',
-          'Full-featured modal: description, labels, due date, checklist, members.',
-          1, '2026-04-19'),
-        ($2, $5, 'Database schema design',
-          'Design normalized PostgreSQL schema for boards, lists, cards, labels, members.',
-          2, '2026-04-17'),
-        ($3, $5, 'Code review: Auth module',
-          'Review PR #42 — JWT authentication implementation.',
-          0, null),
-        ($4, $5, 'Project setup & scaffolding',
-          'Initial React + Vite frontend and Node + Express backend setup.',
-          0, null),
-        ($4, $5, 'Neon DB configuration',
-          'Connected PostgreSQL via Neon DB. SSL working.',
-          1, null)
+    // 7. Insert cards for the Portfolio board
+    const cDocs = await client.query(`
+      INSERT INTO cards (list_id, board_id, title, description, cover_color, position) VALUES
+        ($1, $5, '👋 Akshay Dhankhar', 
+          'I am a Full Stack Web Developer studying at Indian Institute of Information Technology Nagpur (3rd Year).\n\nI have completed my backend training from Harkirat Singh (100xdevs) and have solved 500+ DSA questions across platforms.', 
+          '#f97316', 0),
+        ($1, $5, '🔗 Important Links', 
+          '**LinkedIn:** https://www.linkedin.com/in/akshaydhankhar/\n**GitHub:** https://github.com/AkshayDhankhar1/\n**LeetCode:** https://leetcode.com/u/AkshyDhankhar/', 
+          null, 1),
+        ($2, $5, '💻 Languages', 'C++, JavaScript (ES6+), TypeScript, HTML5, CSS3', null, 0),
+        ($2, $5, '⚙️ Backend', 'Node.js, Express.js, RESTful Architecture, WebSockets, WebRTC, JWT, Zod', null, 1),
+        ($2, $5, '🎨 Frontend', 'ReactJs, NextJs', null, 2),
+        ($2, $5, '🗄️ Databases & Tools', 'MongoDB (Transactions, Indexing), PostgreSQL, Prisma, MySQL, Git, GitHub, Postman, Linux', null, 3),
+        ($2, $5, '🧠 Core Concepts', 'Data Structures & Algorithms (400+ problems), OOPS, DBMS, Software Engineering, OS, CN', null, 4),
+        ($3, $5, '🚀 AtomPay – Wallet-to-Wallet Payment System', 
+          '**Live Link:** https://atom-pay-nine.vercel.app/\n**Tech Stack:** Node.js, Express, MongoDB, ReactJs\n\n• Engineered a FinTech backend with P2P transfers across 6+ REST APIs, secured via 2-token JWT and 2FA Email OTP (speakeasy, 30s window).\n• Implemented ACID-compliant transfers using MongoDB sessions — 3 atomic ops (debit, credit, ledger) in a 2-phase commit with auto-rollback and 100% auditability.\n• Designed idempotency middleware with Idempotency-Key headers and 3-state FSM (pending → processing → completed), eliminating duplicate charges on retries.\n• Built 0-dependency IP rate limiter (Map + setInterval) and enforced 1,00,000/24hr cap via MongoDB Aggregation on 3 indexed fields — blocking velocity fraud.',
+          '#0ea5e9', 0),
+        ($4, $5, '📧 Email', 'akshaydhankhar.iiitn@gmail.com', null, 0),
+        ($4, $5, '📱 Mobile', '+91 9050261651', null, 1),
+        ($4, $5, '📄 Resume', 'https://drive.google.com/file/d/1kfmeK7fOHN7KWx5edkx7K1M5bVhHRJKX/view?usp=sharing', '#22c55e', 2)
       RETURNING id, title
-    `, [backlog.id, inProgress.id, inReview.id, done.id, roadmap.id]);
-    const cards = cardsResult.rows;
+    `, [lstAbout.id, lstSkills.id, lstProjects.id, lstContact.id, portfolio.id]);
+    const cards = cDocs.rows;
     console.log('✅ Cards inserted');
 
     // 8. Assign labels to cards
+    // '👋 Akshay Dhankhar' uses 'Full Stack', 'DSA (500+)'
+    // '🚀 AtomPay' uses 'Backend', 'Full Stack', 'Important'
     await client.query(`
       INSERT INTO card_labels (card_id, label_id) VALUES
-        ($1, $7), ($1, $10),
-        ($2, $8), ($2, $11),
-        ($3, $8),
-        ($4, $9), ($4, $11),
-        ($5, $9), ($5, $10),
-        ($6, $8),
-        ($7, $7), ($7, $11)
+        ($1, $2), ($1, $3),
+        ($4, $5), ($4, $2), ($4, $6),
+        ($7, $5)
     `, [
-      cards[0].id, cards[1].id, cards[2].id, cards[3].id, cards[4].id, cards[5].id, cards[6].id,
-      lblBug.id, lblBackend.id, lblFrontend.id, lblFeature.id, lblDesign.id, lblUrgent.id
+      cards[0].id, lFullStack.id, lDsa.id, 
+      cards[7].id, lBackend.id, lImportant.id,
+      cards[3].id
     ]);
     console.log('✅ Card labels assigned');
 
     // 9. Assign members to cards
     await client.query(`
       INSERT INTO card_members (card_id, member_id) VALUES
-        ($1, $6), ($1, $7),
-        ($2, $8),
-        ($3, $8),
-        ($4, $9), ($4, $7),
-        ($5, $9),
-        ($6, $8)
-    `, [
-      cards[0].id, cards[1].id, cards[2].id, cards[3].id, cards[4].id, cards[5].id,
-      carol.id, alice.id, dave.id, bob.id
-    ]);
+        ($1, $2), ($3, $2)
+    `, [cards[0].id, akshay.id, cards[7].id]);
     console.log('✅ Card members assigned');
 
-    // 10. Add a checklist to the "Implement drag-and-drop" card
-    const checklistResult = await client.query(`
-      INSERT INTO checklists (card_id, title) VALUES ($1, 'Implementation Steps')
-      RETURNING id
-    `, [cards[3].id]);
-    const checklistId = checklistResult.rows[0].id;
-
+    // 10. AtomPay Checklist
+    const chkRes = await client.query(`
+      INSERT INTO checklists (card_id, title) VALUES ($1, 'FinTech Implementation Checklist') RETURNING id
+    `, [cards[7].id]);
+    
     await client.query(`
       INSERT INTO checklist_items (checklist_id, text, is_done, position) VALUES
-        ($1, 'Install @hello-pangea/dnd',             true,  0),
-        ($1, 'Enable DragDropContext for board',       true,  1),
-        ($1, 'Make lists draggable (horizontal)',      false, 2),
-        ($1, 'Make cards draggable (vertical)',        false, 3),
-        ($1, 'Persist new order to backend on drop',  false, 4)
-    `, [checklistId]);
-    console.log('✅ Checklist inserted');
-
-    // 11. Add comments to the "Implement drag-and-drop" card
-    await client.query(`
-      INSERT INTO comments (card_id, member_id, body) VALUES
-        ($1, $2, 'Started with vertical card drag. Lists next!'),
-        ($1, $3, 'Make sure to debounce the position save API call.')
-    `, [cards[3].id, bob.id, alice.id]);
-    console.log('✅ Comments inserted');
-
-    // 12. Insert lists + cards for Engineering board (bonus data)
-    const engListsResult = await client.query(`
-      INSERT INTO lists (board_id, title, position) VALUES
-        ($1, 'To Do',       0),
-        ($1, 'Doing',       1),
-        ($1, 'Done',        2)
-      RETURNING id
-    `, [engineering.id]);
-    const [engTodo, engDoing, engDone] = engListsResult.rows;
-
-    await client.query(`
-      INSERT INTO cards (list_id, board_id, title, position) VALUES
-        ($1, $4, 'Set up monorepo structure', 0),
-        ($1, $4, 'Configure ESLint & Prettier', 1),
-        ($2, $4, 'Write unit tests for API', 0),
-        ($3, $4, 'Deploy to Render', 0)
-    `, [engTodo.id, engDoing.id, engDone.id, engineering.id]);
-    console.log('✅ Engineering board data inserted');
-
-    console.log('\n🎉 Seed complete! Database is ready.');
+        ($1, '2-token JWT & 2FA Email OTP', true, 0),
+        ($1, 'MongoDB ACID transactions with session rollback', true, 1),
+        ($1, 'Idempotency Middleware (FSM)', true, 2),
+        ($1, 'Custom IP Rate Limiter (velocity fraud blocking)', true, 3)
+    `, [chkRes.rows[0].id]);
+    
+    console.log('\n🎉 Seed complete! Database is ready!');
   } catch (err) {
     console.error('❌ Seed failed:', err.message);
     throw err;

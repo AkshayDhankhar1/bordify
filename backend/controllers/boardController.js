@@ -134,17 +134,18 @@ export async function createBoard(req, res) {
 // ─────────────────────────────────────────
 export async function updateBoard(req, res) {
   const { id } = req.params;
-  const { title, background } = req.body;
+  const { title, background, is_done } = req.body;
 
   try {
     const result = await pool.query(`
       UPDATE boards
       SET    title      = COALESCE($1, title),
              background = COALESCE($2, background),
+             is_done    = COALESCE($3, is_done),
              updated_at = NOW()
-      WHERE  id = $3
+      WHERE  id = $4
       RETURNING *
-    `, [title?.trim() || null, background || null, id]);
+    `, [title?.trim() || null, background || null, is_done !== undefined ? is_done : null, id]);
 
     if (!result.rows.length) return res.status(404).json({ error: 'Board not found' });
     res.json(result.rows[0]);

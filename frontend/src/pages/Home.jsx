@@ -1,53 +1,36 @@
 // src/pages/Home.jsx
-// Displays all boards in a beautiful card grid. Allows creating new boards.
-
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { boardsApi } from '../api/index.js';
 import styles from './Home.module.css';
 
-// Board background gradients — unique color palette
-const BACKGROUNDS = [
-  { key: 'gradient-1', label: 'Indigo Night',  style: 'linear-gradient(135deg,#1e1b4b,#312e81,#4338ca)' },
-  { key: 'gradient-2', label: 'Emerald Dusk',  style: 'linear-gradient(135deg,#064e3b,#065f46,#047857)' },
-  { key: 'gradient-3', label: 'Aurora',        style: 'linear-gradient(135deg,#0c4a6e,#075985,#0369a1)' },
-  { key: 'gradient-4', label: 'Sunset',        style: 'linear-gradient(135deg,#7c2d12,#9a3412,#c2410c)' },
-  { key: 'gradient-5', label: 'Violet Storm',  style: 'linear-gradient(135deg,#4a044e,#6b21a8,#7c3aed)' },
-  { key: 'gradient-6', label: 'Teal Wave',     style: 'linear-gradient(135deg,#042f2e,#134e4a,#0f766e)' },
+const BG_GRADIENTS = [
+  { id: 'gradient-1', style: 'linear-gradient(135deg,#0ea5e9,#6366f1)', preview: '#0ea5e9' },
+  { id: 'gradient-2', style: 'linear-gradient(135deg,#f97316,#ef4444)', preview: '#f97316' },
+  { id: 'gradient-3', style: 'linear-gradient(135deg,#22c55e,#0ea5e9)', preview: '#22c55e' },
+  { id: 'gradient-4', style: 'linear-gradient(135deg,#8b5cf6,#ec4899)', preview: '#8b5cf6' },
+  { id: 'gradient-5', style: 'linear-gradient(135deg,#f59e0b,#f97316)', preview: '#f59e0b' },
+  { id: 'gradient-6', style: 'linear-gradient(135deg,#06b6d4,#22c55e)', preview: '#06b6d4' },
 ];
 
-function getBgStyle(key) {
-  const found = BACKGROUNDS.find(b => b.key === key);
-  return found ? found.style : BACKGROUNDS[0].style;
-}
-
-// Get user initials for avatar
-function getInitials(name = '') {
-  return name.split(' ').map(p => p[0]).join('').toUpperCase().slice(0, 2);
-}
-
 export default function Home() {
-  const [boards, setBoards]     = useState([]);
-  const [loading, setLoading]   = useState(true);
-  const [showForm, setShowForm] = useState(false);
-  const [newTitle, setNewTitle] = useState('');
-  const [newBg, setNewBg]       = useState('gradient-1');
+  const [boards,   setBoards]   = useState([]);
+  const [loading,  setLoading]  = useState(true);
+  const [error,    setError]    = useState(null);
+  const [title,    setTitle]    = useState('');
   const [creating, setCreating] = useState(false);
-  const [error, setError]       = useState(null);
+  const [selBg,    setSelBg]    = useState('gradient-1');
+  const navigate = useNavigate();
 
-  // Load all boards on mount
-  useEffect(() => {
-    loadBoards();
-  }, []);
+  useEffect(() => { loadBoards(); }, []);
 
   async function loadBoards() {
     try {
       setLoading(true);
       const res = await boardsApi.getAll();
       setBoards(res.data);
-    } catch (err) {
-      setError('Failed to load boards. Is the backend running?');
-      console.error(err);
+    } catch {
+      setError('Could not load boards. Is the backend running?');
     } finally {
       setLoading(false);
     }
@@ -55,147 +38,138 @@ export default function Home() {
 
   async function handleCreate(e) {
     e.preventDefault();
-    if (!newTitle.trim()) return;
+    if (!title.trim()) return;
+    setCreating(true);
     try {
-      setCreating(true);
-      const res = await boardsApi.create({ title: newTitle.trim(), background: newBg });
+      const res = await boardsApi.create({ title: title.trim(), background: selBg });
       setBoards(prev => [res.data, ...prev]);
-      setNewTitle('');
-      setNewBg('gradient-1');
-      setShowForm(false);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setCreating(false);
-    }
+      setTitle('');
+      navigate(`/board/${res.data.id}`);
+    } catch { setError('Failed to create board.'); }
+    finally { setCreating(false); }
   }
 
-  if (loading) return (
-    <div className={styles.loadingScreen}>
-      <div className="spinner" />
-      <p>Loading your boards…</p>
-    </div>
-  );
+  async function handleDelete(e, id) {
+    e.preventDefault(); e.stopPropagation();
+    if (!window.confirm('Delete this board and all its data?')) return;
+    await boardsApi.delete(id);
+    setBoards(prev => prev.filter(b => b.id !== id));
+  }
 
-  if (error) return (
-    <div className={styles.errorScreen}>
-      <p>⚠️ {error}</p>
-      <button className="btn btn-primary" onClick={loadBoards}>Retry</button>
-    </div>
-  );
+  async function handleMarkDone(e, boardId) {
+    e.preventDefault(); e.stopPropagation();
+    await boardsApi.update(boardId, { is_done: true });
+    setBoards(prev => prev.map(b => b.id === boardId ? { ...b, is_done: true } : b));
+  }
+
+  const getBgStyle = (bg) => BG_GRADIENTS.find(g => g.id === bg)?.style || BG_GRADIENTS[0].style;
+
+  if (loading) return <div className={styles.loadingWrap}><div className="spinner" /></div>;
+  if (error)   return <div className={styles.errorBox}><p>⚠️ {error}</p></div>;
 
   return (
     <div className={styles.page}>
-      {/* Hero banner */}
+      {/* Hero + create form */}
       <div className={styles.hero}>
-        <div className={styles.heroContent}>
-          <h1 className={styles.heroTitle}>
-            Your Boards
-            <span className={styles.pulse} />
-          </h1>
-          <p className={styles.heroSubtitle}>Organize work, ship faster. Drag, drop, done.</p>
+        <h1 className={styles.heroTitle}>Your <span>Boards</span></h1>
+        <p className={styles.heroSub}>Organize your work visually, just like Trello.</p>
+
+        <div className={styles.createCard}>
+          <p className={styles.createTitle}>✨ Create a new board</p>
+          {/* Color picker */}
+          <div className={styles.colorPicker}>
+            {BG_GRADIENTS.map(g => (
+              <button
+                key={g.id}
+                className={`${styles.colorSwatch} ${selBg === g.id ? styles.colorSwatchActive : ''}`}
+                style={{ background: g.style }}
+                onClick={() => setSelBg(g.id)}
+                title={g.id}
+              />
+            ))}
+          </div>
+          <form className={styles.createForm} onSubmit={handleCreate}>
+            <input
+              className="input"
+              placeholder="Board title…"
+              value={title}
+              onChange={e => setTitle(e.target.value)}
+              id="new-board-input"
+            />
+            <button
+              type="submit"
+              className="btn btn-accent"
+              disabled={creating || !title.trim()}
+              id="create-board-btn"
+            >
+              {creating ? '…' : '+ Add'}
+            </button>
+          </form>
         </div>
-        <button
-          id="create-board-btn"
-          className={`btn btn-primary ${styles.createBtn}`}
-          onClick={() => setShowForm(true)}
-        >
-          + New Board
-        </button>
       </div>
 
-      {/* Create board form */}
-      {showForm && (
-        <div className={styles.formOverlay} onClick={(e) => { if (e.target === e.currentTarget) setShowForm(false); }}>
-          <div className={styles.formCard}>
-            <h2>Create a New Board</h2>
-            <form onSubmit={handleCreate}>
-              <div className={styles.field}>
-                <label htmlFor="board-title">Board Title</label>
-                <input
-                  id="board-title"
-                  className="input"
-                  placeholder="e.g. Product Roadmap"
-                  value={newTitle}
-                  onChange={e => setNewTitle(e.target.value)}
-                  autoFocus
-                  required
-                />
-              </div>
-              <div className={styles.field}>
-                <label>Background</label>
-                <div className={styles.bgPicker}>
-                  {BACKGROUNDS.map(bg => (
-                    <button
-                      key={bg.key}
-                      type="button"
-                      className={`${styles.bgSwatch} ${newBg === bg.key ? styles.bgSwatchActive : ''}`}
-                      style={{ background: bg.style }}
-                      onClick={() => setNewBg(bg.key)}
-                      title={bg.label}
-                    />
-                  ))}
-                </div>
-              </div>
-              <div className={styles.formActions}>
-                <button type="button" className="btn btn-ghost" onClick={() => setShowForm(false)}>Cancel</button>
-                <button type="submit" className="btn btn-primary" disabled={creating}>
-                  {creating ? 'Creating…' : 'Create Board'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
       {/* Board grid */}
-      {boards.length === 0 ? (
-        <div className={styles.empty}>
-          <div className={styles.emptyIcon}>⬡</div>
-          <h2>No boards yet</h2>
-          <p>Create your first board to get started</p>
-          <button className="btn btn-primary" onClick={() => setShowForm(true)}>+ Create Board</button>
+      <div className={styles.section}>
+        <div className={styles.sectionHeader}>
+          <h2 className={styles.sectionTitle}>
+            📋 My Boards <span className={styles.boardCount}>{boards.length}</span>
+          </h2>
         </div>
-      ) : (
-        <div className={styles.grid}>
-          {boards.map(board => (
-            <Link
-              key={board.id}
-              to={`/board/${board.id}`}
-              className={styles.boardCard}
-              id={`board-${board.id}`}
-            >
-              {/* Board background cover */}
-              <div
-                className={styles.boardCover}
-                style={{ background: getBgStyle(board.background) }}
+
+        {boards.length === 0 ? (
+          <div className={styles.emptyState}>
+            <div className={styles.emptyIcon}>📭</div>
+            <p className={styles.emptyText}>No boards yet</p>
+            <p>Create your first board above to get started!</p>
+          </div>
+        ) : (
+          <div className={styles.boardGrid}>
+            {boards.map(board => (
+              <Link
+                key={board.id}
+                to={`/board/${board.id}`}
+                className={styles.boardCard}
+                id={`board-card-${board.id}`}
               >
-                <div className={styles.boardCoverOverlay} />
-                <span className={styles.boardCoverIcon}>⬡</span>
-              </div>
+                <div
+                  className={styles.boardCardInner}
+                  style={{ background: getBgStyle(board.background) }}
+                >
+                  {/* Done badge */}
+                  {board.is_done && <span className={styles.doneBadge}>✓ Done</span>}
 
-              {/* Board info */}
-              <div className={styles.boardInfo}>
-                <h3 className={styles.boardTitle}>{board.title}</h3>
-                <div className={styles.boardMeta}>
-                  <span className={styles.metaPill}>{board.list_count || 0} lists</span>
-                  <span className={styles.metaPill}>{board.card_count || 0} cards</span>
+                  <div className={styles.boardCardTitle}>{board.title}</div>
+
+                  <div className={styles.boardCardMeta}>
+                    <div className={styles.boardCardStats}>
+                      <span>📋 {board.list_count || 0} lists</span>
+                      <span>🃏 {board.card_count || 0} cards</span>
+                    </div>
+                    <div className={styles.boardCardActions}>
+                      {!board.is_done && (
+                        <button
+                          className={styles.boardActionBtn}
+                          onClick={(e) => handleMarkDone(e, board.id)}
+                          title="Mark board as done"
+                        >
+                          ✓
+                        </button>
+                      )}
+                      <button
+                        className={`${styles.boardActionBtn} ${styles.boardActionDanger}`}
+                        onClick={(e) => handleDelete(e, board.id)}
+                        title="Delete board"
+                      >
+                        🗑
+                      </button>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </Link>
-          ))}
-
-          {/* + Add board tile */}
-          <button
-            className={styles.addTile}
-            onClick={() => setShowForm(true)}
-            id="add-board-tile"
-          >
-            <span className={styles.addIcon}>+</span>
-            <span>Create new board</span>
-          </button>
-        </div>
-      )}
+              </Link>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
