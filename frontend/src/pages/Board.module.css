@@ -1,0 +1,230 @@
+/* Board.module.css */
+.boardPage {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - 56px);
+  overflow: hidden;
+  position: relative;
+}
+
+/* Loading / error */
+.loadingScreen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  height: calc(100vh - 56px);
+  color: var(--text-secondary);
+}
+
+/* Board Header */
+.boardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 14px 20px;
+  background: rgba(0,0,0,0.35);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  flex-shrink: 0;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
+  flex: 1;
+}
+
+.backBtn {
+  color: rgba(255,255,255,0.7);
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: color var(--transition);
+  text-decoration: none;
+}
+.backBtn:hover { color: white; }
+
+.boardTitle {
+  font-size: 18px;
+  font-weight: 800;
+  color: white;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  cursor: pointer;
+  letter-spacing: -0.3px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  transition: background var(--transition);
+}
+.boardTitle:hover { background: rgba(255,255,255,0.1); }
+
+.titleInput {
+  font-size: 18px;
+  font-weight: 800;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  color: white;
+  background: rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.3);
+  border-radius: var(--radius-sm);
+  padding: 4px 8px;
+  outline: none;
+  min-width: 200px;
+}
+
+/* Member avatars in header */
+.memberAvatars {
+  display: flex;
+  margin-left: 4px;
+}
+
+.memberAvatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: white;
+  border: 2px solid rgba(0,0,0,0.3);
+  margin-left: -6px;
+  text-transform: uppercase;
+  flex-shrink: 0;
+  cursor: default;
+  transition: transform var(--transition);
+}
+.memberAvatar:hover { transform: scale(1.15); z-index: 5; }
+.memberAvatars .memberAvatar:first-child { margin-left: 0; }
+
+/* Search results dropdown */
+.searchResults {
+  position: absolute;
+  top: 60px;
+  right: 20px;
+  z-index: 80;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  width: 340px;
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+}
+
+.searchResultsHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.searchResultsList {
+  max-height: 320px;
+  overflow-y: auto;
+  padding: 4px;
+}
+
+.searchResultItem {
+  width: 100%;
+  text-align: left;
+  display: block;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background var(--transition);
+  background: transparent;
+  border: none;
+  color: inherit;
+}
+.searchResultItem:hover { background: var(--bg-hover); }
+
+.srListName {
+  display: block;
+  font-size: 10px;
+  color: var(--brand-400);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 2px;
+}
+
+.srCardTitle {
+  font-size: 14px;
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+/* ── Kanban scroll area ──────────────────────────────────── */
+.boardScrollArea {
+  flex: 1;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 20px;
+}
+
+.listsContainer {
+  display: flex;
+  gap: 14px;
+  height: 100%;
+  align-items: flex-start;
+  min-height: calc(100vh - 160px);
+}
+
+/* Add list button */
+.addListBtn {
+  background: rgba(255,255,255,0.12);
+  border: 1px dashed rgba(255,255,255,0.2);
+  color: rgba(255,255,255,0.8);
+  border-radius: var(--radius-md);
+  padding: 12px 18px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  min-width: 220px;
+  text-align: left;
+  transition: all var(--transition);
+  flex-shrink: 0;
+}
+.addListBtn:hover {
+  background: rgba(255,255,255,0.18);
+  border-color: rgba(255,255,255,0.35);
+  color: white;
+}
+
+.addListForm {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 10px;
+  min-width: 220px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.addListInput {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+}
+
+.addListActions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}

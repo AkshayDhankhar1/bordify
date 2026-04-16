@@ -1,0 +1,77 @@
+/* SearchBar.module.css */
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.searchRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.inputWrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.icon {
+  position: absolute;
+  left: 10px;
+  font-size: 13px;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.input {
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.15);
+  color: white;
+  padding: 7px 12px 7px 32px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  outline: none;
+  width: 180px;
+  transition: all var(--transition);
+  font-family: inherit;
+}
+.input::placeholder { color: rgba(255,255,255,0.4); }
+.input:focus { border-color: rgba(255,255,255,0.35); background: rgba(255,255,255,0.15); width: 220px; }
+
+.filterToggle {
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.15);
+  color: rgba(255,255,255,0.7);
+  padding: 7px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all var(--transition);
+  font-family: inherit;
+}
+.filterToggle:hover { background: rgba(255,255,255,0.18); color: white; }
+
+.filtersPanel {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 10px;
+  background: rgba(0,0,0,0.3);
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+.select {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: white;
+  font-size: 12px;
+  padding: 6px 10px;
+  flex: 1;
+  min-width: 120px;
+  cursor: pointer;
+}
+.select option { background: #1a1d27; color: white; }

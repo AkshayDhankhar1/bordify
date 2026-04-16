@@ -1,0 +1,61 @@
+CREATE TABLE boards (
+  id SERIAL PRIMARY KEY,
+  title VARCHAR(255) NOT NULL,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE TABLE members (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  avatar_color VARCHAR(7) NOT NULL DEFAULT '#7c3aed'
+);
+
+CREATE TABLE lists (
+  id SERIAL PRIMARY KEY,
+  board_id INTEGER NOT NULL REFERENCES boards(id) ON DELETE CASCADE,
+  title VARCHAR(255) NOT NULL,
+  position INTEGER NOT NULL DEFAULT 0
+);
+
+CREATE TABLE labels (
+  id SERIAL PRIMARY KEY,
+  board_id INTEGER NOT NULL REFERENCES boards(id) ON DELETE CASCADE,
+  title VARCHAR(100) NOT NULL,
+  color VARCHAR(7) NOT NULL
+);
+
+CREATE TABLE cards (
+  id SERIAL PRIMARY KEY,
+  list_id INTEGER NOT NULL REFERENCES lists(id) ON DELETE CASCADE,
+  title VARCHAR(255) NOT NULL,
+  description TEXT,
+  position INTEGER NOT NULL DEFAULT 0,
+  due_date DATE,
+  is_archived BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE TABLE card_labels (
+  card_id INTEGER NOT NULL REFERENCES cards(id) ON DELETE CASCADE,
+  label_id INTEGER NOT NULL REFERENCES labels(id) ON DELETE CASCADE,
+  PRIMARY KEY (card_id, label_id)
+);
+
+CREATE TABLE card_members (
+  card_id INTEGER NOT NULL REFERENCES cards(id) ON DELETE CASCADE,
+  member_id INTEGER NOT NULL REFERENCES members(id) ON DELETE CASCADE,
+  PRIMARY KEY (card_id, member_id)
+);
+
+CREATE TABLE checklists (
+  id SERIAL PRIMARY KEY,
+  card_id INTEGER NOT NULL REFERENCES cards(id) ON DELETE CASCADE,
+  title VARCHAR(255) NOT NULL DEFAULT 'Checklist'
+);
+
+CREATE TABLE checklist_items (
+  id SERIAL PRIMARY KEY,
+  checklist_id INTEGER NOT NULL REFERENCES checklists(id) ON DELETE CASCADE,
+  title VARCHAR(255) NOT NULL,
+  is_completed BOOLEAN DEFAULT FALSE
+);
